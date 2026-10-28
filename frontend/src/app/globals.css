@@ -1,0 +1,161 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Samaritan design tokens.
+ * Palette drawn from the liturgical year: Advent violet for identity and action,
+ * Ordinary-time green, Pentecost red, Marian blue and gold for data.
+ */
+:root {
+  --bg: #f4f5f7;
+  --surface: #ffffff;
+  --surface-2: #f8f8fa;
+  --border: #e3e4ea;
+  --border-strong: #cdd0da;
+  --text: #1d1a29;
+  --muted: #646378;
+  --subtle: #8e8da0;
+
+  --primary: #5b3e96;
+  --primary-hover: #4c3281;
+  --primary-soft: #efeaf8;
+  --primary-fg: #ffffff;
+
+  --sidebar: #2b2142;
+  --sidebar-hover: #3a2d58;
+  --sidebar-active: #4a3a6e;
+  --sidebar-text: #d9d2ea;
+  --sidebar-muted: #9a8fb6;
+
+  --green: #3a7d5c;
+  --green-soft: #e6f2ec;
+  --gold: #b8901f;
+  --gold-soft: #f8f0d8;
+  --red: #b4473c;
+  --red-soft: #f8e6e3;
+  --blue: #3d6fb6;
+  --blue-soft: #e5eef9;
+
+  --ring: #8f72c9;
+
+  /* Categorical chart slots, validated for CVD separation (fixed order). */
+  --chart-1: #5b3e96;
+  --chart-2: #a47c0e;
+  --chart-3: #3d6fb6;
+  --chart-4: #238a57;
+  --chart-grid: #ebecf0;
+}
+
+.dark {
+  --bg: #17141f;
+  --surface: #201c2b;
+  --surface-2: #262133;
+  --border: #342e44;
+  --border-strong: #463e5b;
+  --text: #ece8f5;
+  --muted: #a49db8;
+  --subtle: #7c7591;
+
+  --primary: #a587e0;
+  --primary-hover: #b89ceb;
+  --primary-soft: #2e2645;
+  --primary-fg: #17141f;
+
+  --sidebar: #120f1a;
+  --sidebar-hover: #1f1a2c;
+  --sidebar-active: #2e2645;
+  --sidebar-text: #d9d2ea;
+  --sidebar-muted: #8a80a5;
+
+  --green: #6cbf95;
+  --green-soft: #1d3329;
+  --gold: #e0b94e;
+  --gold-soft: #362d14;
+  --red: #e57d72;
+  --red-soft: #3b201d;
+  --blue: #7ea7e6;
+  --blue-soft: #1b2a40;
+  --ring: #a587e0;
+
+  --chart-1: #8f73d4;
+  --chart-2: #a8841c;
+  --chart-3: #5f8fd6;
+  --chart-4: #3fa673;
+  --chart-grid: #2c2739;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-subtle: var(--subtle);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-fg: var(--primary-fg);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-hover: var(--sidebar-hover);
+  --color-sidebar-active: var(--sidebar-active);
+  --color-sidebar-text: var(--sidebar-text);
+  --color-sidebar-muted: var(--sidebar-muted);
+  --color-green: var(--green);
+  --color-green-soft: var(--green-soft);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-red: var(--red);
+  --color-red-soft: var(--red-soft);
+  --color-blue: var(--blue);
+  --color-blue-soft: var(--blue-soft);
+  --color-ring: var(--ring);
+
+  --font-sans: "Onest Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Literata Variable", ui-serif, Georgia, serif;
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+}
+
+html {
+  color-scheme: light;
+}
+html.dark {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-feature-settings: "ss01", "cv11";
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Tabular numbers for anything statistical */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Recharts: keep axis text in the UI face */
+.recharts-text {
+  font-family: var(--font-sans);
+}
