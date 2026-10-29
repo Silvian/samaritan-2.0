@@ -1,0 +1,41 @@
+# Local demo: a fully seeded, fictitious church on http://localhost:3000.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.demo.yml up --build
+#
+# The demo login password is printed in the api logs on first start, or choose your
+# own by running the command with DEMO_PASSWORD=... in front of it.
+#
+# NEVER use this file for real data: it uses plain http, password-less database
+# access on the internal network, and lets the demo seed run with production settings.
+name: samaritan-demo
+
+services:
+  db:
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: trust  # db is only reachable on the internal network
+
+  api:
+    build:
+      args:
+        INSTALL_DEMO: "true"
+    env_file: !reset []
+    environment:
+      DATABASE_URL: postgres://samaritan@db:5432/samaritan
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1,api
+      FRONTEND_URL: http://localhost:3000
+      AUTH_COOKIE_SECURE: "false"
+      SECURE_SSL_REDIRECT: "false"
+      SECURE_HSTS_SECONDS: "0"
+      EMAIL_BACKEND: django.core.mail.backends.console.EmailBackend
+      DEMO_MODE: "true"
+      SEED_DEMO: "true"
+      DEMO_PASSWORD: ${DEMO_PASSWORD:-}
+    volumes:
+      - demo-secrets:/app/demo-secrets
+
+  web:
+    ports: !override
+      - "3000:3000"
+
+volumes:
+  demo-secrets:
