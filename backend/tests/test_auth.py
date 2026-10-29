@@ -6,7 +6,7 @@ from rest_framework.test import APIClient
 
 from apps.core.models import AuditLog, ChurchSettings
 
-from .conftest import PASSWORD, make_user
+from .conftest import PASSWORD, make_user, new_password
 
 LOGIN = "/api/v1/auth/login/"
 
@@ -101,7 +101,7 @@ class TestCSRFAndTokens:
         login(a, "admin@test.org")
         login(b, "admin@test.org")
         res = a.post("/api/v1/auth/password/change/",
-                     {"current_password": PASSWORD, "new_password": "Another-Strong-Pass-42"},
+                     {"current_password": PASSWORD, "new_password": new_password()},
                      format="json", **csrf_header(a))
         assert res.status_code == 200
         assert a.get("/api/v1/auth/me/").status_code == 200  # re-issued for this device
@@ -117,6 +117,7 @@ class TestCSRFAndTokens:
 
     def test_password_reset_flow(self, admin_user):
         client = APIClient()
+        first, second = new_password(), new_password()
         res = client.post("/api/v1/auth/password/reset/", {"email": "admin@test.org"}, format="json")
         assert res.status_code == 200
         assert len(mail.outbox) == 1
@@ -124,13 +125,13 @@ class TestCSRFAndTokens:
         uid = link.split("uid=")[1].split("&")[0]
         token = link.split("token=")[1]
         res = client.post("/api/v1/auth/password/reset/confirm/",
-                          {"uid": uid, "token": token, "new_password": "Brand-New-Secret-77"},
+                          {"uid": uid, "token": token, "new_password": first},
                           format="json")
         assert res.status_code == 200
-        assert login(APIClient(), "admin@test.org", "Brand-New-Secret-77").status_code == 200
+        assert login(APIClient(), "admin@test.org", first).status_code == 200
         # token is single-use
         res = client.post("/api/v1/auth/password/reset/confirm/",
-                          {"uid": uid, "token": token, "new_password": "Brand-New-Secret-88"},
+                          {"uid": uid, "token": token, "new_password": second},
                           format="json")
         assert res.status_code == 400
 

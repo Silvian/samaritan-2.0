@@ -13,11 +13,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends libpq5 \
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
+# Demo images also need Faker for `seed_demo` (docker-compose.demo.yml sets this).
+ARG INSTALL_DEMO=false
+RUN if [ "$INSTALL_DEMO" = "true" ]; then pip install Faker==40.44.0; fi
+
 COPY . .
-RUN DJANGO_SECRET_KEY=build-only-$(date +%s)-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-    FIELD_ENCRYPTION_KEYS=0n3oQ0Kq7d6yCq3m3m2d6hJ1F5p7GZpQGQx2mY2YQ6s= \
+# collectstatic never touches secrets; random throwaway values satisfy the settings checks.
+RUN DJANGO_SECRET_KEY="$(python -c 'import secrets; print(secrets.token_urlsafe(64))')" \
+    FIELD_ENCRYPTION_KEYS="$(python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())')" \
     python manage.py collectstatic --noinput \
-    && chmod +x docker-entrypoint.sh
+    && chmod +x docker-entrypoint.sh \
+    && mkdir -p /app/demo-secrets && chown samaritan /app/demo-secrets
 
 USER samaritan
 EXPOSE 8000

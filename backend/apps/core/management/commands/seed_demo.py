@@ -7,7 +7,9 @@ Populate the database with realistic, entirely fictitious demo data.
 Never run against a production database.
 """
 
+import os
 import random
+import secrets
 from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 
@@ -27,7 +29,6 @@ from apps.pastoral.models import CareNote, CareRecord
 from apps.people.models import Household, Milestone, Person, Position, Tag
 from apps.privacy.models import Consent, DataRequest
 
-DEMO_PASSWORD = "Samaritan-Demo-2026!"
 TAGS = [("Newcomer", "emerald"), ("Volunteer", "indigo"), ("Needs lift", "amber"),
         ("Musician", "violet"), ("DBS checked", "sky"), ("Housebound", "rose")]
 GROUPS = [
@@ -73,11 +74,24 @@ class Command(BaseCommand):
         parser.add_argument("--flush", action="store_true")
         parser.add_argument("--households", type=int, default=110)
         parser.add_argument("--seed", type=int, default=2026)
+        parser.add_argument("--if-empty", action="store_true",
+                            help="Do nothing if the database already contains people")
 
-    def handle(self, *args, flush=False, households=110, seed=2026, **options):
-        if not settings.DEBUG and not options.get("force"):
-            if "production" in settings.SETTINGS_MODULE:
-                raise CommandError("Refusing to seed demo data with production settings.")
+    def handle(self, *args, flush=False, households=110, seed=2026, if_empty=False, **options):
+        # Guard against seeding a real database: with production settings this only runs
+        # when the deployment has explicitly declared itself a demo (DEMO_MODE=true).
+        if not settings.DEBUG and not os.environ.get("DEMO_MODE", "").lower() == "true":
+            raise CommandError(
+                "Refusing to seed demo data outside development. Set DEMO_MODE=true on a "
+                "throwaway demo deployment if you really mean it."
+            )
+        # Shared password for the demo logins: DEMO_PASSWORD if set, otherwise random.
+        self.demo_password = os.environ.get("DEMO_PASSWORD") or (
+            f"Demo-{secrets.token_urlsafe(6)}-{secrets.randbelow(90) + 10}"
+        )
+        if if_empty and Person.objects.exists():
+            self.stdout.write("Database already has people; skipping demo seed.")
+            return
         random.seed(seed)
         self.fake = Faker("en_GB")
         Faker.seed(seed)
@@ -322,7 +336,7 @@ class Command(BaseCommand):
                 "first_name": first, "last_name": last, "role": roles[role], "person": person,
                 "is_superuser": su, "is_staff": su,
             })
-            u.set_password(DEMO_PASSWORD)
+            u.set_password(self.demo_password)
             u.save()
             created_users[role] = u
         pastor = created_users["Pastor"]
@@ -367,7 +381,7 @@ class Command(BaseCommand):
             f"Seeded {len(people)} people in {n_households} households, {len(groups)} groups, "
             f"{Event.objects.count()} events, {Donation.objects.count()} donations."
         ))
-        self.stdout.write(f"Demo logins (password: {DEMO_PASSWORD}):")
+        self.stdout.write(self.style.SUCCESS(f"Demo logins (password: {self.demo_password}):"))
         for email, *_ in users:
             self.stdout.write(f"  {email}")
         self.stdout.write(self.style.WARNING(

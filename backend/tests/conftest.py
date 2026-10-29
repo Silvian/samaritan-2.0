@@ -1,3 +1,4 @@
+import secrets
 from datetime import date, timedelta
 
 import pytest
@@ -10,7 +11,13 @@ from apps.core.models import ChurchSettings
 from apps.groups.models import Group, GroupMembership
 from apps.people.models import Household, Person
 
-PASSWORD = "Correct-Horse-Battery-9"
+
+def new_password() -> str:
+    """Random password that satisfies the validators (generated per run, never committed)."""
+    return f"Tst-{secrets.token_urlsafe(12)}-9"
+
+
+PASSWORD = new_password()
 
 
 @pytest.fixture(autouse=True)

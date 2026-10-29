@@ -76,9 +76,25 @@ npm install
 npm run dev                     # http://localhost:3000
 ```
 
-Demo logins created by `seed_demo` (password `Samaritan-Demo-2026!`): `admin@`, `pastor@`, `office@`, `finance@`, `leader@` and `readonly@example.org`. Each one shows a different role. The demo turns two-factor enforcement off so you can click around; turn it back on in Settings.
+`seed_demo` creates the logins `admin@`, `pastor@`, `office@`, `finance@`, `leader@` and `readonly@example.org`, each showing a different role. They share one password, which the command prints at the end; set `DEMO_PASSWORD` beforehand to choose your own. Development secrets are generated on first run into `backend/.dev-secrets.json` (git-ignored). The demo turns two-factor enforcement off so you can click around; turn it back on in Settings.
 
 API documentation (Swagger UI) is available in development at http://localhost:8000/api/v1/docs/.
+
+## Demo with Docker (one command)
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.demo.yml up --build
+```
+
+Open http://localhost:3000 and sign in as `admin@example.org` (or `pastor@`, `office@`, `finance@`, `leader@`, `readonly@example.org` to see each role). The password is printed in the API logs on first start:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.demo.yml logs api | grep "Demo logins"
+```
+
+To pick it yourself, start with `DEMO_PASSWORD=your-password docker compose -f docker-compose.yml -f docker-compose.demo.yml up --build`. No `.env` is needed: the demo generates its own secret keys on first start. The first start seeds a fictitious church; later starts keep your changes. To start over, run `docker compose -f docker-compose.yml -f docker-compose.demo.yml down -v`.
+
+The demo uses plain http and a password-less internal database, so never point it at real data.
 
 ## Running with Docker
 

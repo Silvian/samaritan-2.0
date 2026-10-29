@@ -34,4 +34,4 @@ Next.js 16 App Router + React 19 + Tailwind v4 + TanStack Query. Read `AGENTS.md
 
 ## Quality gate
 - `npx tsc --noEmit` and `npx eslint src` must pass for your files.
-- Dev server runs at http://localhost:3000 (Django at :8000). Demo login: admin@example.org / Samaritan-Demo-2026!
+- Dev server runs at http://localhost:3000 (Django at :8000). Demo login: admin@example.org with the password printed by `python manage.py seed_demo` (or set `DEMO_PASSWORD`).
