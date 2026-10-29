@@ -12,13 +12,13 @@ jobs:
       postgres:
         image: postgres:16
         env:
-          POSTGRES_PASSWORD: postgres
+          POSTGRES_HOST_AUTH_METHOD: trust  # throwaway CI container, no credentials needed
           POSTGRES_DB: samaritan
         ports: ["5432:5432"]
         options: >-
           --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
     env:
-      DATABASE_URL: postgres://postgres:postgres@localhost:5432/samaritan
+      DATABASE_URL: postgres://postgres@localhost:5432/samaritan
     defaults:
       run:
         working-directory: backend
@@ -36,9 +36,11 @@ jobs:
       - name: Deployment checks
         env:
           DJANGO_SETTINGS_MODULE: config.settings.production
-          DJANGO_SECRET_KEY: ci-only-secret-key-that-is-long-enough-to-pass-the-deploy-check-1234567890
-          FIELD_ENCRYPTION_KEYS: 0n3oQ0Kq7d6yCq3m3m2d6hJ1F5p7GZpQGQx2mY2YQ6s=
-        run: python manage.py check --deploy --fail-level WARNING
+        run: |
+          # Throwaway keys generated per run: no secrets are stored in the workflow.
+          export DJANGO_SECRET_KEY="$(python -c 'import secrets; print(secrets.token_urlsafe(64))')"
+          export FIELD_ENCRYPTION_KEYS="$(python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())')"
+          python manage.py check --deploy --fail-level WARNING
 
   frontend:
     runs-on: ubuntu-latest
@@ -57,3 +59,14 @@ jobs:
       - run: npm run lint
       - run: npm run build
       - run: npm audit --audit-level=high --omit=dev
+
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Scan for committed secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
